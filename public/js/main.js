@@ -1,13 +1,26 @@
-const socket = io.connect('http://localhost:10000')
-const p2p = new P2P(socket)
+function init () {
+  var p = new window.SimplePeer({ initiator: window.location.hash === '#1', trickle: false })
 
-p2p.on('ready', function(){
-  p2p.usePeerConnection = true;
-  p2p.emit('peer-obj', { peerId: 1234 });
-})
+  p.on('error', (err) => console.log('error', err))
 
-// this event will be triggered over the socket transport
-// until `usePeerConnection` is set to `true`
-p2p.on('peer-msg', function(data){
-  console.log(data);
-});
+  p.on('signal', function (data) {
+    console.log('SIGNAL', JSON.stringify(data))
+    document.querySelector('#outgoing').textContent = JSON.stringify(data)
+  })
+
+  document.querySelector('form').addEventListener('submit', function (ev) {
+    ev.preventDefault()
+    p.signal(JSON.parse(document.querySelector('#incoming').value))
+  })
+
+  p.on('connect', () => {
+    console.log('CONNECT')
+    p.send('whatever ' + Math.random())
+  })
+
+  p.on('data', function (data) {
+    console.log('data: ' + data)
+  })
+}
+
+document.addEventListener('DOMContentLoaded', init, false)

@@ -7,15 +7,19 @@ function init () {
   let secretField = $('#secretField')
   let showHideButton = $('#showHideButton')
 
+  window.namespace = window.uuid()
+  window.otpSecret = window.uuid()
+
   if (window.location.hash === '') {
     welcomeJumboTron.removeClass('d-none')
   } else {
-    let offer = window.atob(window.location.hash.substring(1))
+    let hash = JSON.parse(window.atob(window.location.hash.substring(1)))
+    console.log('namespace:', hash.namespace)
     var p2 = new window.SimplePeer({ initiator: false, trickle: false })
     p2.on('signal', (data) => {
       console.log('answer:', data)
     })
-    p2.signal(offer)
+    p2.signal(JSON.stringify(hash.offer))
   }
 
   shareNowButton.on('click', () => {
@@ -27,7 +31,12 @@ function init () {
       p.on('error', (err) => console.log('error', err))
       p.on('signal', (data) => {
         console.log('offer:', data)
-        window.location.hash = window.btoa(JSON.stringify(data))
+        console.log('namespace:', window.namespace)
+        let hash = {
+          namespace: window.namespace,
+          offer: data
+        }
+        window.location.hash = window.btoa(JSON.stringify(hash))
       })
     }
   })

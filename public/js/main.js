@@ -1,25 +1,42 @@
 function init () {
   console.log('window.location.hash:', window.location.hash, window.location.hash === '')
 
+  let origin = window.location.origin
+
   let shareNowButton = $('#shareNowButton')
   let welcomeJumboTron = $('#welcomeJumboTron')
   let mainShareContainer = $('#mainShareContainer')
   let secretField = $('#secretField')
   let showHideButton = $('#showHideButton')
 
-  window.namespace = window.uuid()
+  let mainReceiveContainer = $('#mainReceiveContainer')
+  let codeField = $('#codeField')
+  let sendButton = $('#sendButton')
+  let secretValue = $('#secretValue')
+
+  window.room = window.uuid()
   window.otpSecret = window.uuid()
 
   if (window.location.hash === '') {
     welcomeJumboTron.removeClass('d-none')
   } else {
     let hash = JSON.parse(window.atob(window.location.hash.substring(1)))
-    console.log('namespace:', hash.namespace)
+    console.log('room:', hash.room)
     var p2 = new window.SimplePeer({ initiator: false, trickle: false })
     p2.on('signal', (data) => {
       console.log('answer:', data)
+      window.socket2 = io.connect(origin)
+      socket2.on('connect', (socket) => {
+        socket2.emit('join', hash.room)
+        socket2.emit('answer', { room: hash.room, answer: data})
+      })
     })
     p2.signal(JSON.stringify(hash.offer))
+    p2.on('data', function (data) {
+      console.log('got a message from peer1: ' + data)
+      mainReceiveContainer.removeClass('d-none')
+      secretValue.text(''+data)
+    })
   }
 
   shareNowButton.on('click', () => {
@@ -31,12 +48,37 @@ function init () {
       p.on('error', (err) => console.log('error', err))
       p.on('signal', (data) => {
         console.log('offer:', data)
-        console.log('namespace:', window.namespace)
+        console.log('room:', window.room)
         let hash = {
-          namespace: window.namespace,
+          room: window.room,
           offer: data
         }
         window.location.hash = window.btoa(JSON.stringify(hash))
+        window.socket1 = io.connect(origin)
+        socket1.on('connect', (socket) => {
+          socket1.emit('join', window.room)
+          socket1.on('answer', (answer) => {
+            console.log('signaling answer')
+            p.signal(JSON.stringify(answer))
+          })
+        })
+      })
+      p.on('data', function (data) {
+        if (window.currentTotp === '' + data) {
+          p.send('Secret: ' + secretField.val().trim())
+        } else {
+          p.send("Incorrect Code!")
+        }
+        console.log('got a message from peer2: ' + data)
+      })
+      p.on('connect', function (data) {
+        p.send('Hey peer2!')
+        setInterval(() => {
+          window.currentTotp = otplib.totp.generate(window.otpSecret)
+          window.totpTimeLeft = otplib.totp.timeRemaining()
+          $('#totpValue').text(`${window.currentTotp}  `)
+          $('.progress-bar').css('width', `${Math.floor(( window.totpTimeLeft / 30) * 100)}%`)
+        }, 1000)
       })
     }
   })
@@ -48,30 +90,10 @@ function init () {
       secretField.attr('type', 'password')
     }
   })
-}
-function init2 () {
-  console.log('window.location.hash:', window.location.hash, window.location.hash === '')
-  var p = new window.SimplePeer({ initiator: window.location.hash === '#1', trickle: false })
 
-  p.on('error', (err) => console.log('error', err))
-
-  p.on('signal', function (data) {
-    console.log('SIGNAL', JSON.stringify(data))
-    document.querySelector('#outgoing').textContent = JSON.stringify(data)
-  })
-
-  document.querySelector('form').addEventListener('submit', function (ev) {
-    ev.preventDefault()
-    p.signal(JSON.parse(document.querySelector('#incoming').value))
-  })
-
-  p.on('connect', () => {
-    console.log('CONNECT')
-    p.send('whatever ' + Math.random())
-  })
-
-  p.on('data', function (data) {
-    console.log('data: ' + data)
+  sendButton.on('click', () => {
+    console.log(codeField.val().trim())
+    p2.send(codeField.val().trim())
   })
 }
 

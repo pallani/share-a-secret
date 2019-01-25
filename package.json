@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "debug": "DEBUG=* nodemon server.js"
+    "debug": "DEBUG=socket.io:* nodemon server.js"
   },
   "author": "",
   "license": "ISC",

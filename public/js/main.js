@@ -14,6 +14,8 @@ function init () {
   let sendButton = $('#sendButton')
   let secretValue = $('#secretValue')
 
+  let senderStatus = $('senderStatus')
+
   window.room = window.uuid()
   window.otpSecret = window.uuid()
 
@@ -72,7 +74,8 @@ function init () {
         console.log('got a message from peer2: ' + data)
       })
       p.on('connect', function (data) {
-        p.send('Hey peer2!')
+        p.send('Call the person with secret and ask for the code!')
+        senderStatus.text('Connected to receiver!')
         setInterval(() => {
           window.currentTotp = otplib.totp.generate(window.otpSecret)
           window.totpTimeLeft = otplib.totp.timeRemaining()

@@ -14,7 +14,7 @@ function init () {
   let sendButton = $('#sendButton')
   let secretValue = $('#secretValue')
 
-  let senderStatus = $('senderStatus')
+  let senderStatus = $('#senderStatus')
 
   window.room = window.uuid()
   window.otpSecret = window.uuid()

@@ -1,63 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Share Secrets</title>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <title>Share Secrets</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/style.css" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css?family=Russo+One" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Fira+Mono|Major+Mono+Display" rel="stylesheet">
 </head>
 <body>
-	<div id="welcomeJumboTron" class="jumbotron d-none">
-	  <h1 class="display-4">Share a secret</h1>
-	  <p class="lead">This simple app lets you share secrets like API keys with another person.</p>
-	  <hr class="my-4">
-	  <p>It uses WebRTC between two browsers to share the secrets. Socket.io is used for signaling and intial set-up.</p>
-	  <a id="shareNowButton" class="btn btn-success btn-lg" href="#" role="button">Share now</a>
-	</div>
-	<div id="mainShareContainer" class="container-fluid d-none text-center">
-		<h1>Enter the secret</h1>
-	  <div class="input-group">
-	    <input id="secretField" class="form-control" type="password" aria-label="Secret"></input>
-	    <div class="input-group-prepend">
-	      <span id="showHideButton" class="input-group-text">Show/Hide</span>
-	    </div>
-	  </div>
-	  <h5><span id="totpValue"></span></h5>
-	  <div class="progress">
-  <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-</div>
-		<h5><span id="senderStatus"></span></h5>
-	</div>
-	<div id="mainReceiveContainer" class="container-fluid d-none text-center">
-			<h1>Enter the code</h1>
-		  <div class="input-group">
-		    <input id="codeField" class="form-control" type="text" aria-label="Code"></input>
-		    <div class="input-group-prepend">
-		      <span id="sendButton" class="input-group-text">Send</span>
-		    </div>
-		  </div>
-		  <h5><span id="secretValue"></span></h5>
-	</div>
-	<!-- <div>
-		<style>
-		      #outgoing {
-		        width: 600px;
-		        word-wrap: break-word;
-		      }
-		    </style>
-		    <form>
-		      <textarea id="incoming"></textarea>
-		      <button type="submit">submit</button>
-		    </form>
-		    <pre id="outgoing"></pre>
-	</div> -->
-	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
-	<script src="https://unpkg.com/otplib@^10.0.0/otplib-browser.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js" integrity="sha256-i2Orhi397HWPn93rsCUTW8HBoso65vY/VNTllm9Kuqo=" crossorigin="anonymous"></script>
-	<script src="js/simplepeer.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.8/uuid.min.js"></script>
-	<script src="js/main.js"></script>
+  <nav class="navbar">
+    <div class="brand">secret</div>
+    <div class="description">A simple p2p app for sharing secrets</div>
+  </nav>
+  <div class="container-fluid">
+    <div id="senderContainer" class="row d-none">
+      <div id="createContainer" class="card-container active col-sm">
+        <div class="card-content">
+          <div class="card-title">step 1</div>
+          <div class="card-description">Enter your secret in the input box below.</div>
+          <div class="input-container">
+            <textarea name="textarea" placeholder="Enter your secret here" wrap="off"></textarea>
+          </div>
+          <button id="createSessionButton" class="float-right">create session</button>
+        </div>
+      </div>
+      <div id="shareContainer" class="card-container inactive col-sm">
+        <div class="card-content">
+          <div class="card-title">step 2</div>
+          <div class="card-description">Send the link below with the person you want to share the secret with.</div>
+          
+          <div class="input-container">
+            <textarea id="shareableLinkTextArea" name="textarea"></textarea>
+          </div>
+          <button id="copyLinkButton" class="float-right">copy link</button>
+        </div>
+      </div>
+      <div id="tokenContainer" class="card-container inactive col-sm">
+        <div class="card-content">
+          <div class="card-title">step 3</div>
+          <div class="card-description">Send the time-based one time password to the person you want to share the secret with.</div>
+          <div class="totp-container inactive">
+            <div id="totpCode"></div>
+            <div id="totpTimer">
+              <div id="totpTimerValue"></div>
+              <svg>
+                <circle r="40" cx="40" cy="40"></circle>
+              </svg>
+            </div>
+            <div id="senderStatus">Waiting for connection</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="receipientContainer" class="row d-none">
+      <div id="createContainer" class="card-container active col-sm">
+        <div class="card-content">
+          <div>
+            <button id="decodeButton">Decode</button>
+            <input id="totpTokenValue">
+          </div>
+          <div id="secretValue">text value</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/otplib@^10.0.0/otplib-browser.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js" integrity="sha256-i2Orhi397HWPn93rsCUTW8HBoso65vY/VNTllm9Kuqo=" crossorigin="anonymous"></script>
+  <script src="js/simplepeer.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.8/uuid.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

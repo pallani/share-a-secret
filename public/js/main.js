@@ -1,51 +1,44 @@
-function init () {
+function init() {
   console.log('window.location.hash:', window.location.hash, window.location.hash === '')
-
   let origin = window.location.origin
 
-  let shareNowButton = $('#shareNowButton')
-  let welcomeJumboTron = $('#welcomeJumboTron')
-  let mainShareContainer = $('#mainShareContainer')
-  let secretField = $('#secretField')
-  let showHideButton = $('#showHideButton')
+  let senderContainer = $('#senderContainer')
+  let createContainer = $('#createContainer')
+  let createSessionButton = $('#createSessionButton')
 
-  let mainReceiveContainer = $('#mainReceiveContainer')
-  let codeField = $('#codeField')
-  let sendButton = $('#sendButton')
-  let secretValue = $('#secretValue')
+  let shareContainer = $('#shareContainer')
+  let shareableLinkTextArea = $('#shareableLinkTextArea')
+  let copyLinkButton = $('#copyLinkButton')
 
+  let tokenContainer = $('#tokenContainer')
+  let totpContainer = $('.totp-container')
+  let totpCode = $('#totpCode')
+  let totpTimer = $('svg circle')
+  let totpValue = $('#totpValue')
+  let totpTimerValue = $('#totpTimerValue')
   let senderStatus = $('#senderStatus')
+
+  let receipientContainer = $('#receipientContainer')
+  let decodeButton = $('#decodeButton')
+  let secretValue = $('#secretValue')
 
   window.room = window.uuid()
   window.otpSecret = window.uuid()
 
-  if (window.location.hash === '') {
-    welcomeJumboTron.removeClass('d-none')
-  } else {
-    let hash = JSON.parse(window.atob(window.location.hash.substring(1)))
-    console.log('room:', hash.room)
-    var p2 = new window.SimplePeer({ initiator: false, trickle: false })
-    p2.on('signal', (data) => {
-      console.log('answer:', data)
-      window.socket2 = io.connect(origin)
-      socket2.on('connect', (socket) => {
-        socket2.emit('join', hash.room)
-        socket2.emit('answer', { room: hash.room, answer: data})
-      })
-    })
-    p2.signal(JSON.stringify(hash.offer))
-    p2.on('data', function (data) {
-      console.log('got a message from peer1: ' + data)
-      mainReceiveContainer.removeClass('d-none')
-      secretValue.text(''+data)
-    })
+  function updateTimer() {
+    setInterval(() => {
+      window.currentTotp = otplib.totp.generate(window.otpSecret)
+      window.totpTimeLeft = otplib.totp.timeRemaining()
+      totpCode.text(`${window.currentTotp}`)
+      totpValue.text(`${window.currentTotp}`)
+      totpTimerValue.text(`${window.totpTimeLeft}`)
+      totpTimer.css('stroke-dashoffset', `${Math.floor((30 - window.totpTimeLeft) * 10)}px`)
+    }, 1000)
   }
 
-  shareNowButton.on('click', () => {
-    welcomeJumboTron.addClass('d-none')
-    mainShareContainer.removeClass('d-none')
-
-    if (window.location.hash === '') {
+  if (window.location.hash === '') {
+    senderContainer.removeClass('d-none')
+    createSessionButton.on('click', () => {
       var p = new window.SimplePeer({ initiator: true, trickle: false })
       p.on('error', (err) => console.log('error', err))
       p.on('signal', (data) => {
@@ -55,12 +48,16 @@ function init () {
           room: window.room,
           offer: data
         }
-        window.location.hash = window.btoa(JSON.stringify(hash))
-        window.socket1 = io.connect(origin)
+        shareableLinkTextArea.val(`${origin}/#${window.btoa(JSON.stringify(hash))}`)
+        totpContainer.removeClass('inactive')
+        window.socket1 = io.connect(origin) 
         socket1.on('connect', (socket) => {
+          shareContainer.removeClass('inactive').addClass('active')
+          updateTimer()
           socket1.emit('join', window.room)
           socket1.on('answer', (answer) => {
-            console.log('signaling answer')
+            senderStatus.text('Connected to a receiver!')
+            console.log(JSON.stringify(answer))
             p.signal(JSON.stringify(answer))
           })
         })
@@ -74,30 +71,38 @@ function init () {
         console.log('got a message from peer2: ' + data)
       })
       p.on('connect', function (data) {
-        p.send('Call the person with secret and ask for the code!')
-        senderStatus.text('Connected to receiver!')
-        setInterval(() => {
-          window.currentTotp = otplib.totp.generate(window.otpSecret)
-          window.totpTimeLeft = otplib.totp.timeRemaining()
-          $('#totpValue').text(`${window.currentTotp}  `)
-          $('.progress-bar').css('width', `${Math.floor(( window.totpTimeLeft / 30) * 100)}%`)
-        }, 1000)
+        p.send('Call   the person with secret and ask for the code!')
       })
-    }
-  })
+    })
 
-  showHideButton.on('click', (e) => {
-    if (secretField.attr('type') === 'password') {
-      secretField.attr('type', 'text')
-    } else {
-      secretField.attr('type', 'password')
-    }
-  })
-
-  sendButton.on('click', () => {
-    console.log(codeField.val().trim())
-    p2.send(codeField.val().trim())
-  })
+    copyLinkButton.on('click', () => {
+      tokenContainer.removeClass('inactive').addClass('active')
+      $('#shareableLinkTextArea').select()
+      document.execCommand('copy')
+    })
+  } else {
+    receipientContainer.removeClass('d-none')
+    decodeButton.on('click', () => {
+      console.log("hello")
+      let hash = JSON.parse(window.atob(window.location.hash.substring(1)))
+      console.log('room:', hash.room)
+      var p2 = new window.SimplePeer({ initiator: false, trickle: false })
+      p2.on('signal', (data) => {
+        console.log('answer:', data)
+        window.socket2 = io.connect(origin)
+        socket2.on('connect', (socket) => {
+          socket2.emit('join', hash.room)
+          socket2.emit('answer', { room: hash.room, answer: data})
+        })  
+      })
+      p2.signal(JSON.stringify(hash.offer))
+      p2.on('data', function (data) {
+        console.log('got a message from peer1: ' + data)
+        console.log(data)
+        secretValue.text(''+data)
+      })
+    })
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init, false)

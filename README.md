@@ -1,5 +1,13 @@
 # Share A Secret
 
+## TODO
+1. Improve connection messaging
+	- The current connection status isn't detailed enough
+		- Signaling connection using socket.io
+		- WebRTC connection
+2. Set-up TURN server to allow app to work through firewalls and NAT
+3. Improve overall security of app by looking at webrtc encryption
+
 ## Flows
 
 ### Sender

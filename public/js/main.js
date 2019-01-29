@@ -140,7 +140,7 @@ function init () {
     userRole.removeClass('d-none')
     userRoleText.html('recipient')
     let hash = JSON.parse(window.atob(window.location.hash.substring(1)))
-    var p2 = new window.SimplePeer({ initiator: false, trickle: false })
+    // var p2 = new window.SimplePeer({ initiator: false, trickle: false })
 
     window.socket2 = io.connect(origin)
     window.socket2.on('connect', (socket) => {
@@ -166,22 +166,6 @@ function init () {
         })
       })
     })
-
-    // p2.on('signal', (data) => {
-    //   window.socket2 = io.connect(origin)
-
-    //   socket2.on('connect', (socket) => {
-    //     socket2.emit('join', hash)
-    //     socket2.emit('answer', { room: hash.room, answer: data})
-    //     socket2.on('offer', (offer) => {
-    //       p2 = new window.SimplePeer({ initiator: false, trickle: false })
-    //       p2.signal(JSON.stringify(offer))
-    //     })
-    //     userStatus.html('<i class="fas fa-circle"></i>Connected to a sender!')
-    //     $('#userStatus i').css({'color': 'green', 'animation': 'none'})
-    //   })
-    // })
-    // p2.signal(JSON.stringify(hash.offer))
 
     codeField.on('keypress',function(e) {
       if(e.which == 13) {

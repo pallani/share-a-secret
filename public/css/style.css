@@ -51,6 +51,10 @@ body {
   font-family: 'Major Mono Display', monospace;
 }
 
+#userStatus {
+  text-align: right;
+}
+
 #userStatus i {
   animation: blinker 1s linear infinite;
 }
@@ -72,7 +76,7 @@ body {
 }
 
 .card-container {
-  margin: 0px 7px;
+  margin: 0px 15px;
   padding: 40px 60px;
 }
 
@@ -112,6 +116,18 @@ label {
   font-size: 15px;
 }
 
+.btn {
+  font-size: 12px;
+  padding: 5px 20px;
+  background: #ffffff60;
+  border: none;
+  color: white;
+}
+
+.btn:hover {
+    -webkit-filter: brightness(70%);
+}
+
 .card-next.active {
   font-size: 15px;
   font-family: 'Major Mono Display', monospace;
@@ -134,7 +150,7 @@ label {
 }
 
 .input-container {
-  height: 200px;
+  height: 250px;
 }
 
 .input-container textarea {
@@ -144,6 +160,24 @@ label {
   outline: none;
   padding: 10px;
   font-size: 10px;
+}
+
+.input-container input {
+  width: 100%;
+  resize: none;
+  outline: none;
+  padding: 10px;
+  font-size: 10px;
+}
+
+#secretErrorMsg {
+  font-size: 10px;
+  color: #ffc000;
+}
+
+#decodeErrorMsg {
+  font-size: 10px;
+  color: #ffc000;
 }
 
 .totp-container.active {}
@@ -163,4 +197,28 @@ label {
   width: 100px;
   margin: auto;
   margin-top: 30px;
+}
+
+@media only screen and (max-width: 1204px) {
+  #navbar {
+    padding: 20px 30px;
+  }
+
+  .container-fluid {
+    padding: 20px 30px;
+  }
+
+  .card-container {
+    margin: 0px 7px 30px 7px;
+    padding: 20px 30px;
+  }
+
+  button {
+    width: 100%;
+    background: #ffffff60;
+    border: none;
+    color: white;
+    font-size: 12px;
+    padding: 10px;
+  }
 }

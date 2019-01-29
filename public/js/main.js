@@ -96,13 +96,11 @@ function init () {
           updateTimer()
           socket1.emit('join', window.room)
           socket1.on('getOffer', () => {
-            console.log('give me offer')
             window.p = new window.SimplePeer({ initiator: true, trickle: false })
             window.p.on('signal', (data) => {
               socket1.emit('offer', {room: window.room, offer: data})
             })
             window.p.on('data', function (data) {
-              console.log('data from receiver:', data)
               if (window.currentTotp === '' + data) {
                 p.send(secretField.val().trim())
               } else {
@@ -110,7 +108,6 @@ function init () {
               }
             })
             window.p.on('connect', function (data) {
-              console.log('connected!')
               window.p.send('Call the person with the secret and ask for the code!')
             })
             window.p.on('close', function () {
@@ -123,7 +120,6 @@ function init () {
           socket1.on('answer', (answer) => {
             userStatus.html('<i class="fas fa-circle"></i>Connected to a receiver!')
             $('#userStatus i').css({'color': 'green', 'animation': 'none'})
-            console.log('answerrrrrrrrrr', answer)
             window.p.signal(JSON.stringify(answer))
           })
         })
@@ -150,13 +146,11 @@ function init () {
         window.p2 = new window.SimplePeer({ initiator: false, trickle: false })
         window.p2.signal(JSON.stringify(offer))
         window.p2.on('signal', (data) => {
-          console.log('answer', data)
           window.socket2.emit('answer', {room: hash, answer: data})
           userStatus.html('<i class="fas fa-circle"></i>Connected to a sender!')
           $('#userStatus i').css({'color': 'green', 'animation': 'none'})
         })
         window.p2.on('data', function (data) {
-          console.log('data', data)
           if (data == 'Incorrect Code!') {
             decodeErrorMsg.removeClass('d-none').text('Incorrect Code!')
             codeField.css({'border': '2px solid #ffc000', 'color': '2px solid #ffc000'})

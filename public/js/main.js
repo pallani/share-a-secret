@@ -1,4 +1,4 @@
-/* global $ */
+/* global $ ClipboardJS ProgressBar otplib io */
 function init () {
   let origin = window.location.origin
   let userRole = $('#userRole')
@@ -31,27 +31,27 @@ function init () {
   $('.clipboard-btn').tooltip({
     trigger: 'click',
     placement: 'bottom'
-  });
+  })
 
-  function setTooltip(message) {
+  function setTooltip (message) {
     $('.clipboard-btn').tooltip('hide')
       .attr('data-original-title', message)
       .tooltip('show')
   }
 
-  function hideTooltip() {
-    setTimeout(function() {
+  function hideTooltip () {
+    setTimeout(function () {
       $('.clipboard-btn').tooltip('hide')
     }, 1000)
   }
 
   var clipboard = new ClipboardJS('.clipboard-btn')
-  clipboard.on('success', function(e) {
+  clipboard.on('success', function (e) {
     setTooltip('Copied!')
     hideTooltip()
   })
 
-  clipboard.on('error', function(e) {
+  clipboard.on('error', function (e) {
     setTooltip('Failed!')
     hideTooltip()
   })
@@ -62,14 +62,14 @@ function init () {
     trailWidth: 1,
     strokeWidth: 4,
     from: {color: '#FFEA82'},
-    to: {color: '#ED6A5A'},
-  });
+    to: {color: '#ED6A5A'}
+  })
 
-  function updateTimer() {
+  function updateTimer () {
     setInterval(() => {
       window.currentTotp = otplib.totp.generate(window.otpSecret)
       window.totpTimeLeft = otplib.totp.timeRemaining()
-      totpTimer.set(window.totpTimeLeft/30)
+      totpTimer.set(window.totpTimeLeft / 30)
       totpTimer.setText(`${window.totpTimeLeft}`)
       totpCode.text(`${window.currentTotp}`)
     }, 1000)
@@ -81,7 +81,7 @@ function init () {
     userRoleText.html('sender')
     userStatus.html('<i class="fas fa-circle"></i>Pending connection...')
     createSessionButton.on('click', () => {
-      if (secretField.val() == '') {
+      if (secretField.val() === '') {
         secretField.css('border', '2px solid #ffc000')
         secretErrorMsg.removeClass('d-none')
       } else {
@@ -91,20 +91,20 @@ function init () {
         shareableLinkTextArea.val(`${origin}/#${window.btoa(JSON.stringify(hash))}`)
         totpContainer.removeClass('inactive')
         window.socket1 = io.connect(origin)
-        socket1.on('connect', (socket) => {
+        window.socket1.on('connect', (socket) => {
           shareContainer.removeClass('inactive').addClass('active')
           updateTimer()
-          socket1.emit('join', window.room)
-          socket1.on('getOffer', () => {
+          window.socket1.emit('join', window.room)
+          window.socket1.on('getOffer', () => {
             window.p = new window.SimplePeer({ initiator: true, trickle: false })
             window.p.on('signal', (data) => {
-              socket1.emit('offer', {room: window.room, offer: data})
+              window.socket1.emit('offer', {room: window.room, offer: data})
             })
             window.p.on('data', function (data) {
               if (window.currentTotp === '' + data) {
-                p.send(secretField.val().trim())
+                window.p.send(secretField.val().trim())
               } else {
-                p.send('Incorrect Code!')
+                window.p.send('Incorrect Code!')
               }
             })
             window.p.on('connect', function (data) {
@@ -117,7 +117,7 @@ function init () {
               console.log('Error in webrtc:', error)
             })
           })
-          socket1.on('answer', (answer) => {
+          window.socket1.on('answer', (answer) => {
             userStatus.html('<i class="fas fa-circle"></i>Connected to a receiver!')
             $('#userStatus i').css({'color': 'green', 'animation': 'none'})
             window.p.signal(JSON.stringify(answer))
@@ -151,18 +151,18 @@ function init () {
           $('#userStatus i').css({'color': 'green', 'animation': 'none'})
         })
         window.p2.on('data', function (data) {
-          if (data == 'Incorrect Code!') {
+          if (data === 'Incorrect Code!') {
             decodeErrorMsg.removeClass('d-none').text('Incorrect Code!')
             codeField.css({'border': '2px solid #ffc000', 'color': '2px solid #ffc000'})
           } else {
-            secretValueTextArea.html(''+data)
+            secretValueTextArea.html('' + data)
           }
         })
       })
     })
 
-    codeField.on('keypress',function(e) {
-      if(e.which == 13) {
+    codeField.on('keypress', function (e) {
+      if (e.which === 13) {
         window.p2.send(codeField.val().trim())
       }
     })

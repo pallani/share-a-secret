@@ -144,9 +144,11 @@ function init() {
     p2.signal(JSON.stringify(hash.offer))
     p2.on('data', function (data) {
       if (data == 'Incorrect Code!') {
-        secretValueTextArea.css({'border': '2px solid #ffc000', 'color': '2px solid #ffc000'})
+        decodeErrorMsg.removeClass('d-none').text('Incorrect Code!')
+        codeField.css({'border': '2px solid #ffc000', 'color': '2px solid #ffc000'})
+      } else {
+        secretValueTextArea.html(''+data)
       }
-      secretValueTextArea.html(''+data)
     })
 
     codeField.on('keypress',function(e) {

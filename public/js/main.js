@@ -1,4 +1,5 @@
-function init() {
+/* global $ */
+function init () {
   let origin = window.location.origin
   let userRole = $('#userRole')
   let userRoleText = $('#userRoleText')
@@ -74,8 +75,7 @@ function init() {
     }, 1000)
   }
 
-  // Sender's workflow
-  if (window.location.hash === '') { 
+  function senderSetup () {
     senderContainer.removeClass('d-none')
     userRole.removeClass('d-none')
     userRoleText.html('sender')
@@ -87,36 +87,45 @@ function init() {
       } else {
         secretField.css('border', 'none')
         secretErrorMsg.addClass('d-none')
-        var p = new window.SimplePeer({ initiator: true, trickle: false })
-        p.on('error', (err) => console.log('error', err))
-        p.on('signal', (data) => {
-          let hash = {
-            room: window.room,
-            offer: data
-          }
-          shareableLinkTextArea.val(`${origin}/#${window.btoa(JSON.stringify(hash))}`)
-          totpContainer.removeClass('inactive')
-          window.socket1 = io.connect(origin) 
-          socket1.on('connect', (socket) => {
-            shareContainer.removeClass('inactive').addClass('active')
-            updateTimer()
-            socket1.emit('join', window.room)
-            socket1.on('answer', (answer) => {
-              userStatus.html('<i class="fas fa-circle"></i>Connected to a receiver!')
-              $('#userStatus i').css({'color': 'green', 'animation': 'none'})
-              p.signal(JSON.stringify(answer))
+        let hash = window.room
+        shareableLinkTextArea.val(`${origin}/#${window.btoa(JSON.stringify(hash))}`)
+        totpContainer.removeClass('inactive')
+        window.socket1 = io.connect(origin)
+        socket1.on('connect', (socket) => {
+          shareContainer.removeClass('inactive').addClass('active')
+          updateTimer()
+          socket1.emit('join', window.room)
+          socket1.on('getOffer', () => {
+            console.log('give me offer')
+            window.p = new window.SimplePeer({ initiator: true, trickle: false })
+            window.p.on('signal', (data) => {
+              socket1.emit('offer', {room: window.room, offer: data})
+            })
+            window.p.on('data', function (data) {
+              console.log('data from receiver:', data)
+              if (window.currentTotp === '' + data) {
+                p.send(secretField.val().trim())
+              } else {
+                p.send('Incorrect Code!')
+              }
+            })
+            window.p.on('connect', function (data) {
+              console.log('connected!')
+              window.p.send('Call the person with the secret and ask for the code!')
+            })
+            window.p.on('close', function () {
+              console.log('WebRTC connection has closed!')
+            })
+            window.p.on('error', function (error) {
+              console.log('Error in webrtc:', error)
             })
           })
-        })
-        p.on('data', function (data) {
-          if (window.currentTotp === '' + data) {
-            p.send(secretField.val().trim())
-          } else {
-            p.send('Incorrect Code!')
-          }
-        })
-        p.on('connect', function (data) {
-          p.send('Call the person with the secret and ask for the code!')
+          socket1.on('answer', (answer) => {
+            userStatus.html('<i class="fas fa-circle"></i>Connected to a receiver!')
+            $('#userStatus i').css({'color': 'green', 'animation': 'none'})
+            console.log('answerrrrrrrrrr', answer)
+            window.p.signal(JSON.stringify(answer))
+          })
         })
       }
     })
@@ -124,46 +133,76 @@ function init() {
     copyLinkButton.on('click', () => {
       tokenContainer.removeClass('inactive').addClass('active')
     })
+  }
 
-  } else { // recipient's workflow
+  function recipientSetup () {
     recipientContainer.removeClass('d-none')
     userRole.removeClass('d-none')
     userRoleText.html('recipient')
     let hash = JSON.parse(window.atob(window.location.hash.substring(1)))
     var p2 = new window.SimplePeer({ initiator: false, trickle: false })
-    p2.on('signal', (data) => {
-      window.socket2 = io.connect(origin)
 
-      socket2.on('connect', (socket) => {
-        socket2.emit('join', hash.room)
-        socket2.emit('answer', { room: hash.room, answer: data})
-        userStatus.html('<i class="fas fa-circle"></i>Connected to a sender!')
-        $('#userStatus i').css({'color': 'green', 'animation': 'none'})
+    window.socket2 = io.connect(origin)
+    window.socket2.on('connect', (socket) => {
+      window.socket2.emit('join', hash)
+      window.socket2.emit('getOffer', {room: hash})
+      window.socket2.on('offer', (offer) => {
+        window.p2 = new window.SimplePeer({ initiator: false, trickle: false })
+        window.p2.signal(JSON.stringify(offer))
+        window.p2.on('signal', (data) => {
+          console.log('answer', data)
+          window.socket2.emit('answer', {room: hash, answer: data})
+          userStatus.html('<i class="fas fa-circle"></i>Connected to a sender!')
+          $('#userStatus i').css({'color': 'green', 'animation': 'none'})
+        })
+        window.p2.on('data', function (data) {
+          console.log('data', data)
+          if (data == 'Incorrect Code!') {
+            decodeErrorMsg.removeClass('d-none').text('Incorrect Code!')
+            codeField.css({'border': '2px solid #ffc000', 'color': '2px solid #ffc000'})
+          } else {
+            secretValueTextArea.html(''+data)
+          }
+        })
       })
     })
-    p2.signal(JSON.stringify(hash.offer))
-    p2.on('data', function (data) {
-      if (data == 'Incorrect Code!') {
-        decodeErrorMsg.removeClass('d-none').text('Incorrect Code!')
-        codeField.css({'border': '2px solid #ffc000', 'color': '2px solid #ffc000'})
-      } else {
-        secretValueTextArea.html(''+data)
-      }
-    })
+
+    // p2.on('signal', (data) => {
+    //   window.socket2 = io.connect(origin)
+
+    //   socket2.on('connect', (socket) => {
+    //     socket2.emit('join', hash)
+    //     socket2.emit('answer', { room: hash.room, answer: data})
+    //     socket2.on('offer', (offer) => {
+    //       p2 = new window.SimplePeer({ initiator: false, trickle: false })
+    //       p2.signal(JSON.stringify(offer))
+    //     })
+    //     userStatus.html('<i class="fas fa-circle"></i>Connected to a sender!')
+    //     $('#userStatus i').css({'color': 'green', 'animation': 'none'})
+    //   })
+    // })
+    // p2.signal(JSON.stringify(hash.offer))
 
     codeField.on('keypress',function(e) {
       if(e.which == 13) {
-        p2.send(codeField.val().trim())
+        window.p2.send(codeField.val().trim())
       }
     })
 
     decodeButton.on('click', () => {
       try {
-        p2.send(codeField.val().trim())
+        window.p2.send(codeField.val().trim())
       } catch (error) {
         decodeErrorMsg.removeClass('d-none').text('Error encountered when sending code,\nplease create a new session')
       }
     })
+  }
+
+  // Sender's workflow
+  if (window.location.hash === '') {
+    senderSetup()
+  } else { // recipient's workflow
+    recipientSetup()
   }
 }
 

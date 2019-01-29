@@ -13,6 +13,16 @@ io.on('connection', (socket) => {
     socket.join(room)
   })
 
+  // Respond to client request to fetch offer
+  socket.on('getOffer', (data) => {
+    io.to(data.room).emit('getOffer')
+  })
+
+  // Respond to client request to send offer
+  socket.on('offer', (data) => {
+    io.to(data.room).emit('offer', data.offer)
+  })
+
   // Respond to client request to send webrtc answer to room
   socket.on('answer', (data) => {
     io.to(data.room).emit('answer', data.answer)

@@ -4,6 +4,12 @@
   <title>Share Secrets</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <meta name="msapplication-TileColor" content="#313131">
+  <meta name="theme-color" content="#313131">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
   <link rel="stylesheet" href="css/style.css" crossorigin="anonymous">
@@ -34,9 +40,10 @@
           <div class="card-description">Enter your secret in the input box below.</div>
           <div class="input-container">
             <label>Secret</label>
-            <textarea id="secretField" name="textarea" placeholder="Enter your secret here" wrap="off"></textarea>
+            <textarea id="secretField" name="textarea" placeholder="Enter your secret here"></textarea>
+            <div id="secretErrorMsg" class="d-none">Provide a secret to proceed</div>
           </div>
-          <button id="createSessionButton" class="float-right">create session</button>
+          <button id="createSessionButton" class="btn float-right">create session</button>
         </div>
       </div>
       <div id="shareContainer" class="card-container inactive col-sm">
@@ -47,7 +54,9 @@
             <label>Link</label>
             <textarea id="shareableLinkTextArea" name="textarea"></textarea>
           </div>
-          <button id="copyLinkButton" class="float-right">copy link</button>
+          <button id="copyLinkButton" class="btn clipboard-btn float-right" data-clipboard-action="copy" data-clipboard-target="#shareableLinkTextArea">
+          copy link
+        </button>
         </div>
       </div>
       <div id="tokenContainer" class="card-container inactive col-sm">
@@ -68,11 +77,11 @@
           <div class="card-title">step 1</div>
           <div class="card-description">Enter your code in the input box below and click on the decode button.</div>
           <div class="input-container">
-            <div><label>Code</label></div>
-            <input id="codeField">
-            <button id="decodeButton">Decode</button>
+              <label>Code</label>
+              <input id="codeField">
           </div>
-
+          <button id="decodeButton" class="btn float-right">Decode</button>
+          <div id="decodeErrorMsg" class="d-none"></div>
         </div>
       </div>
       <div id="secretContainer" class="card-container active col-sm">
@@ -80,8 +89,9 @@
         <div class="card-description">Copy the secret below.</div>
         <div class="input-container">
           <label>Secret</label>
-          <textarea id="secretValueTextArea" style="width: 100%; height: 100px"></textarea>
+          <textarea id="secretValueTextArea" readonly></textarea>
         </div>
+        <button class="btn clipboard-btn float-right" data-clipboard-action="copy" data-clipboard-target="#secretValueTextArea">copy secret</button>
       </div>
     </div>
   </div>
@@ -92,8 +102,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js" integrity="sha256-i2Orhi397HWPn93rsCUTW8HBoso65vY/VNTllm9Kuqo=" crossorigin="anonymous"></script>
   <script src="js/simplepeer.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.8/uuid.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
-  <script src="js/progressbar.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/progressbar.js/1.0.1/progressbar.min.js" integrity="sha256-VupM2GVVXK2c3Smq5LxXjUHBZveWTs35hu1al6ss6kk=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

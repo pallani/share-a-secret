@@ -8,6 +8,7 @@ function init() {
   // let createContainer = $('#createContainer')
   let secretField = $('#secretField')
   let createSessionButton = $('#createSessionButton')
+  let secretErrorMsg = $('#secretErrorMsg')
 
   let shareContainer = $('#shareContainer')
   let shareableLinkTextArea = $('#shareableLinkTextArea')
@@ -20,10 +21,39 @@ function init() {
   let recipientContainer = $('#recipientContainer')
   let codeField = $('#codeField')
   let decodeButton = $('#decodeButton')
+  let decodeErrorMsg = $('#decodeErrorMsg')
   let secretValueTextArea = $('#secretValueTextArea')
 
   window.room = window.uuid()
   window.otpSecret = window.uuid()
+
+  $('.clipboard-btn').tooltip({
+    trigger: 'click',
+    placement: 'bottom'
+  });
+
+  function setTooltip(message) {
+    $('.clipboard-btn').tooltip('hide')
+      .attr('data-original-title', message)
+      .tooltip('show')
+  }
+
+  function hideTooltip() {
+    setTimeout(function() {
+      $('.clipboard-btn').tooltip('hide')
+    }, 1000)
+  }
+
+  var clipboard = new ClipboardJS('.clipboard-btn')
+  clipboard.on('success', function(e) {
+    setTooltip('Copied!')
+    hideTooltip()
+  })
+
+  clipboard.on('error', function(e) {
+    setTooltip('Failed!')
+    hideTooltip()
+  })
 
   var totpTimer = new ProgressBar.Circle('#totpTimer', {
     color: '#FFEA82',
@@ -52,9 +82,11 @@ function init() {
     userStatus.html('<i class="fas fa-circle"></i>Pending connection...')
     createSessionButton.on('click', () => {
       if (secretField.val() == '') {
-        secretField.css('border', '2px solid red')
+        secretField.css('border', '2px solid #ffc000')
+        secretErrorMsg.removeClass('d-none')
       } else {
         secretField.css('border', 'none')
+        secretErrorMsg.addClass('d-none')
         var p = new window.SimplePeer({ initiator: true, trickle: false })
         p.on('error', (err) => console.log('error', err))
         p.on('signal', (data) => {
@@ -80,7 +112,7 @@ function init() {
           if (window.currentTotp === '' + data) {
             p.send(secretField.val().trim())
           } else {
-            p.send("Incorrect Code!")
+            p.send('Incorrect Code!')
           }
         })
         p.on('connect', function (data) {
@@ -91,9 +123,8 @@ function init() {
 
     copyLinkButton.on('click', () => {
       tokenContainer.removeClass('inactive').addClass('active')
-      $('#shareableLinkTextArea').select()
-      document.execCommand('copy')
     })
+
   } else { // recipient's workflow
     recipientContainer.removeClass('d-none')
     userRole.removeClass('d-none')
@@ -102,20 +133,36 @@ function init() {
     var p2 = new window.SimplePeer({ initiator: false, trickle: false })
     p2.on('signal', (data) => {
       window.socket2 = io.connect(origin)
+
       socket2.on('connect', (socket) => {
         socket2.emit('join', hash.room)
         socket2.emit('answer', { room: hash.room, answer: data})
         userStatus.html('<i class="fas fa-circle"></i>Connected to a sender!')
         $('#userStatus i').css({'color': 'green', 'animation': 'none'})
-      })  
+      })
     })
     p2.signal(JSON.stringify(hash.offer))
     p2.on('data', function (data) {
-      secretValueTextArea.html(''+data)
+      if (data == 'Incorrect Code!') {
+        decodeErrorMsg.removeClass('d-none').text('Incorrect Code!')
+        codeField.css({'border': '2px solid #ffc000', 'color': '2px solid #ffc000'})
+      } else {
+        secretValueTextArea.html(''+data)
+      }
+    })
+
+    codeField.on('keypress',function(e) {
+      if(e.which == 13) {
+        p2.send(codeField.val().trim())
+      }
     })
 
     decodeButton.on('click', () => {
-      p2.send(codeField.val().trim())
+      try {
+        p2.send(codeField.val().trim())
+      } catch (error) {
+        decodeErrorMsg.removeClass('d-none').text('Error encountered when sending code,\nplease create a new session')
+      }
     })
   }
 }

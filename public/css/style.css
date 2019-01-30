@@ -77,18 +77,35 @@ body {
 
 .card-container {
   margin: 0px 15px;
-  padding: 40px 60px;
+  /* padding: 40px 60px; */
+}
+
+.card-content {
+  height: 450px;
+  padding: 40px 60px 0px 60px; 
 }
 
 .card-container.active {
   background: #313131;
   border: 1px solid #ffffff60;
-  border-top: 10px solid #ffffff60;
+  /* border-top: 10px solid #ffffff60; */
 }
 
 .card-container.inactive {
   background: #313131;
   border: 1px solid #ffffff20;
+}
+
+.card-header {
+  padding: 0px;
+  border-radius: 0px!important;
+}
+.card-container.active .card-header{
+  border-top: 10px solid #ffffff60;
+}
+
+.card-container.inactive .card-header{
+  border-top: 10px solid #313131;
 }
 
 .card-container.inactive::before {
@@ -102,6 +119,8 @@ body {
     background-color: #313131bd;
 }
 
+
+
 .card-title {
   font-size: 20px;
   font-family: 'Major Mono Display', monospace;
@@ -112,13 +131,26 @@ body {
   height: 80px;
 }
 
+.input-container {
+  padding-bottom: 15px;
+}
+
+.input-container textarea {
+  width: 100%;
+  height: 150px;
+  resize: none;
+  outline: none;
+  padding: 10px;
+  font-size: 10px;
+}
+
 label {
   font-size: 15px;
 }
 
 .btn {
   font-size: 12px;
-  padding: 5px 20px;
+  padding: 10px 20px;
   background: #ffffff60;
   border: none;
   color: white;
@@ -147,19 +179,6 @@ label {
   position: absolute;
   right: 40px;
   bottom: 40px;
-}
-
-.input-container {
-  height: 250px;
-}
-
-.input-container textarea {
-  width: 100%;
-  height: 150px;
-  resize: none;
-  outline: none;
-  padding: 10px;
-  font-size: 10px;
 }
 
 .input-container input {
@@ -210,7 +229,12 @@ label {
 
   .card-container {
     margin: 0px 7px 30px 7px;
-    padding: 20px 30px;
+
+  }
+
+  .card-content {
+    height: 420px;
+    padding: 20px 30px 0px 30px;
   }
 
   button {

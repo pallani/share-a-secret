@@ -28,6 +28,11 @@ function init () {
   window.room = window.uuid()
   window.otpSecret = window.uuid()
 
+  let totpStep = 60
+  otplib.totp.options = {
+    step: totpStep
+  }
+
   $('.clipboard-btn').tooltip({
     trigger: 'click',
     placement: 'bottom'
@@ -69,7 +74,7 @@ function init () {
     setInterval(() => {
       window.currentTotp = otplib.totp.generate(window.otpSecret)
       window.totpTimeLeft = otplib.totp.timeRemaining()
-      totpTimer.set(window.totpTimeLeft / 30)
+      totpTimer.set(window.totpTimeLeft / totpStep)
       totpTimer.setText(`${window.totpTimeLeft}`)
       totpCode.text(`${window.currentTotp}`)
     }, 1000)

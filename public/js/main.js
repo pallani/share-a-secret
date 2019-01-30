@@ -96,11 +96,12 @@ function init () {
               window.socket1.emit('offer', {room: window.room, offer: data})
             })
             window.p.on('data', function (data) {
+              printLogs(senderConsoleTextArea, `Received request from: ${window.p.remoteAddress}; OTP: ${data}`)
               if (window.currentTotp === '' + data) {
-                printLogs(senderConsoleTextArea, `Correct code received. Secret sent to...`)
+                printLogs(senderConsoleTextArea, `Correct code received, secret sent to: ${window.p.remoteAddress}`)
                 window.p.send(secretField.val().trim())
               } else {
-                printLogs(senderConsoleTextArea, `Incorrect code received`)
+                printLogs(senderConsoleTextArea, `Incorrect code received from: ${window.p.remoteAddress}`)
                 window.p.send('Incorrect Code!')
               }
             })
@@ -213,7 +214,7 @@ function init () {
   }
 
   function printLogs (el, message) {
-    var now = new Date().toISOString()
+    var now = moment().format()
     var lineEntry = now + '&#9;' + message
     el.html(lineEntry  + '\n' + el.val())
   }

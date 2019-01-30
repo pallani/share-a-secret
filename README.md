@@ -7,6 +7,7 @@
 		- WebRTC connection
 2. Set-up TURN server to allow app to work through firewalls and NAT
 3. Improve overall security of app by looking at webrtc encryption
+4. Additional logging for webrtc connection sequence
 
 ## Flows
 

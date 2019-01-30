@@ -15,6 +15,8 @@ function init () {
   let shareableLinkTextArea = $('#shareableLinkTextArea')
   let copyLinkButton = $('#copyLinkButton')
 
+  let senderConsoleTextArea = $('#senderConsoleTextArea')
+
   let tokenContainer = $('#tokenContainer')
   let totpContainer = $('.totp-container')
   let totpCode = $('#totpCode')
@@ -25,10 +27,14 @@ function init () {
   let decodeErrorMsg = $('#decodeErrorMsg')
   let secretValueTextArea = $('#secretValueTextArea')
 
-  window.room = window.uuid()
-  window.otpSecret = window.uuid()
+  let recipientConsoleTextArea = $('#recipientConsoleTextArea')
 
-  let totpStep = 60
+  window.room = window.uuid()
+  printLogs(senderConsoleTextArea, `Room ID created: ${window.room}`)
+  window.otpSecret = window.uuid()
+  printLogs(senderConsoleTextArea, `OTP secret created: ${window.otpSecret}`)
+
+  var totpStep = 60
   otplib.totp.options = {
     step: totpStep
   }
@@ -37,18 +43,6 @@ function init () {
     trigger: 'click',
     placement: 'bottom'
   })
-
-  function setTooltip (message) {
-    $('.clipboard-btn').tooltip('hide')
-      .attr('data-original-title', message)
-      .tooltip('show')
-  }
-
-  function hideTooltip () {
-    setTimeout(function () {
-      $('.clipboard-btn').tooltip('hide')
-    }, 1000)
-  }
 
   var clipboard = new ClipboardJS('.clipboard-btn')
   clipboard.on('success', function (e) {
@@ -70,15 +64,6 @@ function init () {
     to: {color: '#ED6A5A'}
   })
 
-  function updateTimer () {
-    setInterval(() => {
-      window.currentTotp = otplib.totp.generate(window.otpSecret)
-      window.totpTimeLeft = otplib.totp.timeRemaining()
-      totpTimer.set(window.totpTimeLeft / totpStep)
-      totpTimer.setText(`${window.totpTimeLeft}`)
-      totpCode.text(`${window.currentTotp}`)
-    }, 1000)
-  }
 
   function senderSetup () {
     senderContainer.removeClass('d-none')
@@ -93,36 +78,47 @@ function init () {
         secretField.css('border', 'none')
         secretErrorMsg.addClass('d-none')
         let hash = window.room
+        printLogs(senderConsoleTextArea, `Generate URL to share with receiver`)
         shareableLinkTextArea.val(`${origin}/#${window.btoa(JSON.stringify(hash))}`)
         totpContainer.removeClass('inactive')
+        printLogs(senderConsoleTextArea, `Connect to socket.io server`)
         window.socket1 = io.connect(origin)
         window.socket1.on('connect', (socket) => {
+          printLogs(senderConsoleTextArea, `Successfully connected to socket.io server`)
           shareContainer.removeClass('inactive').addClass('active')
           updateTimer()
+          printLogs(senderConsoleTextArea, `Emit message to join room in socket.io`)
           window.socket1.emit('join', window.room)
+          printLogs(senderConsoleTextArea, `Waiting for receiver to ask for offer`)
           window.socket1.on('getOffer', () => {
             window.p = new window.SimplePeer({ initiator: true, trickle: false })
             window.p.on('signal', (data) => {
               window.socket1.emit('offer', {room: window.room, offer: data})
             })
             window.p.on('data', function (data) {
+              printLogs(senderConsoleTextArea, `Received request from: ${window.p.remoteAddress}; OTP: ${data}`)
               if (window.currentTotp === '' + data) {
+                printLogs(senderConsoleTextArea, `Correct code received, secret sent to: ${window.p.remoteAddress}`)
                 window.p.send(secretField.val().trim())
               } else {
+                printLogs(senderConsoleTextArea, `Incorrect code received from: ${window.p.remoteAddress}`)
                 window.p.send('Incorrect Code!')
               }
             })
             window.p.on('connect', function (data) {
-              window.p.send('Call the person with the secret and ask for the code!')
+              printLogs(senderConsoleTextArea, `Connected to: ${window.p.remoteAddress}`)
+              window.p.send(`Call the person with the secret and ask for the code!`)
             })
             window.p.on('close', function () {
               console.log('WebRTC connection has closed!')
+              printLogs(senderConsoleTextArea, 'WebRTC connection has closed!')
             })
             window.p.on('error', function (error) {
               console.log('Error in webrtc:', error)
             })
           })
           window.socket1.on('answer', (answer) => {
+            printLogs(senderConsoleTextArea, 'Connected to a receiver')
             userStatus.html('<i class="fas fa-circle"></i>Connected to a receiver!')
             $('#userStatus i').css({'color': 'green', 'animation': 'none'})
             window.p.signal(JSON.stringify(answer))
@@ -159,8 +155,11 @@ function init () {
           if (data === 'Incorrect Code!') {
             decodeErrorMsg.removeClass('d-none').text('Incorrect Code!')
             codeField.css({'border': '2px solid #ffc000', 'color': '2px solid #ffc000'})
+          } else if (Decodeuint8arr(data) === 'Call the person with the secret and ask for the code!') {
+            secretValueTextArea.html('' + data)
           } else {
             secretValueTextArea.html('' + data)
+            printLogs(recipientConsoleTextArea, data)
           }
         })
       })
@@ -186,6 +185,38 @@ function init () {
     senderSetup()
   } else { // recipient's workflow
     recipientSetup()
+  }
+
+  function updateTimer () {
+    setInterval(() => {
+      window.currentTotp = otplib.totp.generate(window.otpSecret)
+      window.totpTimeLeft = otplib.totp.timeRemaining()
+      totpTimer.set(window.totpTimeLeft / totpStep)
+      totpTimer.setText(`${window.totpTimeLeft}`)
+      totpCode.text(`${window.currentTotp}`)
+    }, 1000)
+  }
+
+  function setTooltip (message) {
+    $('.clipboard-btn').tooltip('hide')
+      .attr('data-original-title', message)
+      .tooltip('show')
+  }
+
+  function hideTooltip () {
+    setTimeout(function () {
+      $('.clipboard-btn').tooltip('hide')
+    }, 1000)
+  }
+
+  function Decodeuint8arr (uint8array) {
+    return new TextDecoder('utf-8').decode(uint8array)
+  }
+
+  function printLogs (el, message) {
+    var now = moment().format()
+    var lineEntry = now + '&#9;' + message
+    el.html(lineEntry  + '\n' + el.val())
   }
 }
 

@@ -36,81 +36,111 @@
     </div>
   </nav>
   <div class="container-fluid">
-    <div id="senderContainer" class="row d-none">
-      <div class="col-sm-4">
-        <div id="createContainer" class="card-container active">
-          <div class="card-header"></div>
-          <div class="card-content">
-            <div class="card-title">step 1</div>
-            <div class="card-description">Enter your secret in the input box below.</div>
-            <div class="input-container">
-              <label>Secret</label>
-              <textarea id="secretField" name="textarea" placeholder="Enter your secret here"></textarea>
-              <div id="secretErrorMsg" class="d-none">Enter a secret to proceed</div>
+    <div id="senderContainer" class="d-none">
+      <div class="row">
+        <div class="col-sm-4">
+          <div id="createContainer" class="card-container active">
+            <div class="card-header"></div>
+            <div class="card-content">
+              <div class="card-title">step 1</div>
+              <div class="card-description">Enter your secret in the input box below.</div>
+              <div class="input-container">
+                <label>Secret</label>
+                <textarea id="secretField" name="textarea" placeholder="Enter your secret here"></textarea>
+                <div id="secretErrorMsg" class="d-none">Enter a secret to proceed</div>
+              </div>
+              <button id="createSessionButton" class="btn float-right align-bottom">create session</button>
             </div>
-            <button id="createSessionButton" class="btn float-right align-bottom">create session</button>
           </div>
         </div>
-      </div>
-      <div class="col-sm-4">
-        <div id="shareContainer" class="card-container inactive">
-          <div class="card-header"></div>
-          <div class="card-content">
-            <div class="card-title">step 2</div>
-            <div class="card-description">Send the link below with the person you want to share the secret with.</div>
-            <div class="input-container">
-              <label>Link</label>
-              <textarea id="shareableLinkTextArea" name="textarea" readonly></textarea>
+        <div class="col-sm-4">
+          <div id="shareContainer" class="card-container inactive">
+            <div class="card-header"></div>
+            <div class="card-content">
+              <div class="card-title">step 2</div>
+              <div class="card-description">Send the link below with the person you want to share the secret with.</div>
+              <div class="input-container">
+                <label>Link</label>
+                <textarea id="shareableLinkTextArea" name="textarea" readonly></textarea>
+              </div>
+              <button id="copyLinkButton" class="btn clipboard-btn float-right" data-clipboard-action="copy" data-clipboard-target="#shareableLinkTextArea">
+              copy link
+            </button>
             </div>
-            <button id="copyLinkButton" class="btn clipboard-btn float-right" data-clipboard-action="copy" data-clipboard-target="#shareableLinkTextArea">
-            copy link
-          </button>
           </div>
         </div>
-      </div>
-      <div class="col-sm-4">
-        <div id="tokenContainer" class="card-container inactive">
-          <div class="card-header"></div>
-          <div class="card-content">
-            <div class="card-title">step 3</div>
-            <div class="card-description">Send the time-based one time password to the person you want to share the secret with.</div>
-            <div class="totp-container inactive">
-              <div id="totpCode"></div>
-              <div id="totpTimer">
+        <div class="col-sm-4">
+          <div id="tokenContainer" class="card-container inactive">
+            <div class="card-header"></div>
+            <div class="card-content">
+              <div class="card-title">step 3</div>
+              <div class="card-description">Send the time-based one time password to the person you want to share the secret with.</div>
+              <div class="totp-container inactive">
+                <div id="totpCode"></div>
+                <div id="totpTimer">
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div id="recipientContainer" class="row d-none">
-      <div class="col-sm-4">
-        <div class="card-header"></div>
-        <div id="codeContainer" class="card-container active">
-          <div class="card-content">
-            <div class="card-title">step 1</div>
-            <div class="card-description">Enter your code in the input box below and click on the decode button.</div>
-            <div class="input-container">
-                <label>Code</label>
-                <input id="codeField">
+      <div class="row">
+          <div class="col-sm-12">
+            <div class="card-container active">
+              <div class="card-header"></div>
+              <div class="card-content">
+                <div class="card-title">console</div>
+                <div class="input-container">
+                  <textarea id="senderConsoleTextArea" class="console-text-area" wrap=off readonly></textarea>
+                </div>
+              </div>
             </div>
-            <button id="decodeButton" class="btn float-right">Decode</button>
-            <div id="decodeErrorMsg" class="d-none"></div>
+          </div>
+      </div>
+    </div>
+    <div id="recipientContainer" class="d-none">
+      <div class="row">
+        <div class="col-sm-4">
+          <div id="codeContainer" class="card-container active">
+            <div class="card-header"></div>
+            <div class="card-content">
+              <div class="card-title">step 1</div>
+              <div class="card-description">Enter your code in the input box below and click on the decode button.</div>
+              <div class="input-container">
+                  <label>Code</label>
+                  <input id="codeField">
+              </div>
+              <button id="decodeButton" class="btn float-right">Decode</button>
+              <div id="decodeErrorMsg" class="d-none"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div id="secretContainer" class="card-container active">
+            <div class="card-header"></div>
+            <div class="card-content">
+              <div class="card-title">step 2</div>
+              <div class="card-description">Copy the secret below.</div>
+              <div class="input-container">
+                <label>Secret</label>
+                <textarea id="secretValueTextArea" readonly wrap="soft"></textarea>
+              </div>
+              <button class="btn clipboard-btn float-right" data-clipboard-action="copy" data-clipboard-target="#secretValueTextArea">copy secret</button>
+            </div>
           </div>
         </div>
       </div>
-      <div class="col-sm-4">
-        <div id="secretContainer" class="card-container active">
-          <div class="card-header"></div>
-          <div class="card-content">
-            <div class="card-title">step 2</div>
-            <div class="card-description">Copy the secret below.</div>
-            <div class="input-container">
-              <label>Secret</label>
-              <textarea id="secretValueTextArea" readonly></textarea>
+      <div class="row">
+        <div class="col-sm-12">
+            <div id="historyContainer" class="card-container active">
+              <div class="card-header"></div>
+              <div class="card-content">
+                <div class="card-title">console</div>
+                <div class="input-container">
+                  <textarea id="recipientConsoleTextArea" class="console-text-area" wrap=off readonly></textarea>
+                </div>
+              </div>
             </div>
-            <button class="btn clipboard-btn float-right" data-clipboard-action="copy" data-clipboard-target="#secretValueTextArea">copy secret</button>
-          </div>
         </div>
       </div>
     </div>

@@ -11,7 +11,14 @@ let twilio = require('twilio')(process.env.TWILIO_ACCOUNT_ID, process.env.TWILIO
 
 async function getIce () {
   let token = await twilio.tokens.create({ttl: 600})
-  return token.iceServers
+  // Twilio returns an array of ice servers but the key for the url is 'url'
+  // This is deprecated and doesn't work in mobile safari
+  // change the keys: url => urls
+  return token.iceServers.map(i => {
+    i['urls'] = i['url']
+    delete i['url']
+    return i
+  })
 }
 
 // Socket.io is used for signalling before the webrtc connection is set-up

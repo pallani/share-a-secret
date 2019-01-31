@@ -230,7 +230,7 @@ function init () {
   }
 
   function printLogs (el, message) {
-    var now = moment().format()
+    var now = moment().format("YYYY-MM-DD HH:mm:ss");
     var lineEntry = now + '&#9;' + message
     el.html(lineEntry + '\n' + el.val())
   }

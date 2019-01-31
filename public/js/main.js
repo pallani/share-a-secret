@@ -147,6 +147,9 @@ function init () {
         window.p2.signal(JSON.stringify(offerPayload.offer))
         window.p2.on('signal', (data) => {
           window.socket2.emit('answer', {room: hash, answer: data})
+          codeContainer.removeClass('inactive').addClass('active')
+          secretContainer.removeClass('inactive').addClass('active')
+          recipientConsoleContainer.removeClass('inactive').addClass('active')
           userStatus.html('<i class="fas fa-circle"></i>Connected to a sender!')
           $('#userStatus i').css({'color': 'green', 'animation': 'none'})
         })

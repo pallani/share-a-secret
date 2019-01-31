@@ -1,4 +1,4 @@
-/* global $ ClipboardJS ProgressBar otplib io */
+/* global $ ClipboardJS ProgressBar otplib io moment */
 function init () {
   let origin = window.location.origin
   let userRole = $('#userRole')
@@ -64,7 +64,6 @@ function init () {
     to: {color: '#ED6A5A'}
   })
 
-
   function senderSetup () {
     senderContainer.removeClass('d-none')
     userRole.removeClass('d-none')
@@ -90,8 +89,8 @@ function init () {
           printLogs(senderConsoleTextArea, `Emit message to join room in socket.io`)
           window.socket1.emit('join', window.room)
           printLogs(senderConsoleTextArea, `Waiting for receiver to ask for offer`)
-          window.socket1.on('getOffer', () => {
-            window.p = new window.SimplePeer({ initiator: true, trickle: false })
+          window.socket1.on('getOffer', (config) => {
+            window.p = new window.SimplePeer({ initiator: true, trickle: false, config })
             window.p.on('signal', (data) => {
               window.socket1.emit('offer', {room: window.room, offer: data})
             })
@@ -143,9 +142,9 @@ function init () {
     window.socket2.on('connect', (socket) => {
       window.socket2.emit('join', hash)
       window.socket2.emit('getOffer', {room: hash})
-      window.socket2.on('offer', (offer) => {
-        window.p2 = new window.SimplePeer({ initiator: false, trickle: false })
-        window.p2.signal(JSON.stringify(offer))
+      window.socket2.on('offer', (offerPayload) => {
+        window.p2 = new window.SimplePeer({ initiator: false, trickle: false, config: { iceServers: offerPayload.iceServers } })
+        window.p2.signal(JSON.stringify(offerPayload.offer))
         window.p2.on('signal', (data) => {
           window.socket2.emit('answer', {room: hash, answer: data})
           userStatus.html('<i class="fas fa-circle"></i>Connected to a sender!')
@@ -216,7 +215,7 @@ function init () {
   function printLogs (el, message) {
     var now = moment().format()
     var lineEntry = now + '&#9;' + message
-    el.html(lineEntry  + '\n' + el.val())
+    el.html(lineEntry + '\n' + el.val())
   }
 }
 

@@ -22,11 +22,15 @@ function init () {
   let totpCode = $('#totpCode')
 
   let recipientContainer = $('#recipientContainer')
+  let codeContainer = $('#codeContainer')
   let codeField = $('#codeField')
   let decodeButton = $('#decodeButton')
   let decodeErrorMsg = $('#decodeErrorMsg')
+
+  let secretContainer = $('#secretContainer')
   let secretValueTextArea = $('#secretValueTextArea')
 
+  let recipientConsoleContainer = $('#recipientConsoleContainer')
   let recipientConsoleTextArea = $('#recipientConsoleTextArea')
 
   window.room = window.uuid()
@@ -80,7 +84,6 @@ function init () {
         printLogs(senderConsoleTextArea, `Generate URL to share with receiver`)
         shareableLinkTextArea.val(`${origin}/#${window.btoa(JSON.stringify(hash))}`)
         totpContainer.removeClass('inactive')
-        printLogs(senderConsoleTextArea, `Connect to socket.io server`)
         window.socket1 = io.connect(origin)
         window.socket1.on('connect', (socket) => {
           printLogs(senderConsoleTextArea, `Successfully connected to socket.io server`)
@@ -135,20 +138,32 @@ function init () {
     recipientContainer.removeClass('d-none')
     userRole.removeClass('d-none')
     userRoleText.html('recipient')
+    userStatus.html('<i class="fas fa-circle"></i>Pending connection...')
     let hash = JSON.parse(window.atob(window.location.hash.substring(1)))
-    // var p2 = new window.SimplePeer({ initiator: false, trickle: false })
-
+    printLogs(recipientConsoleTextArea, `Read room id from url hash: ${hash}`)
     window.socket2 = io.connect(origin)
+    printLogs(recipientConsoleTextArea, `Connect to socket.io server`)
     window.socket2.on('connect', (socket) => {
+      printLogs(recipientConsoleTextArea, `Successfully connected to socket.io server`)
+      printLogs(recipientConsoleTextArea, `Emit message to join room in socket.io`)
       window.socket2.emit('join', hash)
+      printLogs(recipientConsoleTextArea, `Emit message in socket.io to ask for webrtc offer from sender`)
       window.socket2.emit('getOffer', {room: hash})
+      printLogs(recipientConsoleTextArea, `Wait for webrtc offer from sender`)
       window.socket2.on('offer', (offerPayload) => {
+        printLogs(recipientConsoleTextArea, `Use offer to generate webrtc answer`)
         window.p2 = new window.SimplePeer({ initiator: false, trickle: false, config: { iceServers: offerPayload.iceServers } })
         window.p2.signal(JSON.stringify(offerPayload.offer))
+        printLogs(recipientConsoleTextArea, `Send webrtc answer via socket.io`)
         window.p2.on('signal', (data) => {
+          printLogs(recipientConsoleTextArea, `Sender should complete webrtc using the webrtc answer`)
           window.socket2.emit('answer', {room: hash, answer: data})
+          codeContainer.removeClass('inactive').addClass('active')
+          secretContainer.removeClass('inactive').addClass('active')
+          recipientConsoleContainer.removeClass('inactive').addClass('active')
           userStatus.html('<i class="fas fa-circle"></i>Connected to a sender!')
           $('#userStatus i').css({'color': 'green', 'animation': 'none'})
+          printLogs(recipientConsoleTextArea, `Waiting for TOTP`)
         })
         window.p2.on('data', function (data) {
           if (data === 'Incorrect Code!') {
@@ -158,7 +173,7 @@ function init () {
             secretValueTextArea.html('' + data)
           } else {
             secretValueTextArea.html('' + data)
-            printLogs(recipientConsoleTextArea, data)
+            printLogs(recipientConsoleTextArea, `Secret received: ${data}`)
           }
         })
       })
@@ -172,8 +187,10 @@ function init () {
 
     decodeButton.on('click', () => {
       try {
+        printLogs(recipientConsoleTextArea, `Sending totp using webtc connection`)
         window.p2.send(codeField.val().trim())
       } catch (error) {
+        console.log(error)
         decodeErrorMsg.removeClass('d-none').text('Error encountered when sending code,\nplease create a new session')
       }
     })
@@ -213,7 +230,7 @@ function init () {
   }
 
   function printLogs (el, message) {
-    var now = moment().format()
+    var now = moment().format("YYYY-MM-DD HH:mm:ss");
     var lineEntry = now + '&#9;' + message
     el.html(lineEntry + '\n' + el.val())
   }

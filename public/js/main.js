@@ -13,7 +13,7 @@ function init () {
 
   let shareContainer = $('#shareContainer')
   let shareableLinkTextArea = $('#shareableLinkTextArea')
-  let copyLinkButton = $('#copyLinkButton')
+  let linkClipboardBtn = $('#linkClipboardBtn')
 
   let senderConsoleTextArea = $('#senderConsoleTextArea')
 
@@ -48,15 +48,13 @@ function init () {
     placement: 'bottom'
   })
 
-  var clipboard = new ClipboardJS('.clipboard-btn')
-  clipboard.on('success', function (e) {
-    setTooltip('Copied!')
-    hideTooltip()
+  var link_clipboard = new ClipboardJS('#linkClipboardBtn')
+  var secret_clipboard = new ClipboardJS('#secretClipboardBtn')
+  link_clipboard.on('success', function (e) {
+    displayTooltip($('#linkClipboardBtn'), 'Link copied!')
   })
-
-  clipboard.on('error', function (e) {
-    setTooltip('Failed!')
-    hideTooltip()
+  secret_clipboard.on('success', function (e) {
+    displayTooltip($('#secretClipboardBtn'), 'Link copied!')
   })
 
   var totpTimer = new ProgressBar.Circle('#totpTimer', {
@@ -129,7 +127,7 @@ function init () {
       }
     })
 
-    copyLinkButton.on('click', () => {
+    linkClipboardBtn.on('click', () => {
       tokenContainer.removeClass('inactive').addClass('active')
     })
   }
@@ -213,15 +211,12 @@ function init () {
     }, 1000)
   }
 
-  function setTooltip (message) {
-    $('.clipboard-btn').tooltip('hide')
+  function displayTooltip (el, message) {
+    el.tooltip('hide')
       .attr('data-original-title', message)
       .tooltip('show')
-  }
-
-  function hideTooltip () {
     setTimeout(function () {
-      $('.clipboard-btn').tooltip('hide')
+      el.tooltip('hide')
     }, 1000)
   }
 
